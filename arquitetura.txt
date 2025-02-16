@@ -1,0 +1,45 @@
+openstack-lab/
+├── ansible.cfg
+├── inventory/
+│   ├── group_vars/
+│   │   ├── all.yml          # Variáveis globais
+│   │   ├── controller.yml   # Variáveis específicas do controller
+│   │   ├── compute.yml      # Variáveis específicas do compute
+│   │   ├── network.yml      # Variáveis específicas do network
+│   │   └── storage.yml      # Variáveis específicas do storage
+│   └── hosts                # Inventário
+├── playbooks/
+│   ├── site.yml            # Playbook principal
+│   ├── controller.yml      # Playbook do controller
+│   ├── compute.yml         # Playbook do compute
+│   ├── network.yml         # Playbook do network
+│   └── storage.yml         # Playbook do storage
+└── roles/
+    ├── common/             # Configurações comuns a todos os nodes
+    │   ├── defaults/
+    │   ├── handlers/
+    │   ├── tasks/
+    │   ├── templates/
+    │   └── vars/
+    ├── databases/          # MariaDB + Memcached
+    ├── message-queue/      # RabbitMQ
+    ├── keystone/
+    ├── glance/
+    ├── nova/
+    │   ├── controller/     # Tasks específicas do controller
+    │   └── compute/        # Tasks específicas do compute
+    ├── neutron/
+    │   ├── controller/
+    │   ├── network/
+    │   └── compute/
+    ├── horizon/
+    ├── cinder/
+    ├── monitoring/         # Monitoramento básico
+    └── network-base/       # Configuração básica de rede
+        ├── defaults/
+        │   └── main.yml
+        ├── handlers/
+        ├── tasks/
+        │   └── main.yml
+        └── templates/
+            └── interfaces.j2
