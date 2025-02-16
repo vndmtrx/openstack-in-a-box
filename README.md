@@ -62,7 +62,7 @@ ansible-playbook playbooks/site.yml
 
 ## Contribuindo
 
-Contribuições são bem-vindas! Por favor, leia o arquivo CONTRIBUTING.md antes de enviar pull requests.
+Contribuições são bem-vindas! Por favor, leia o arquivo [CONTRIBUTING.md](CONTRIBUTING.md) antes de enviar pull requests.
 
 ## Licença
 
