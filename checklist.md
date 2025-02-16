@@ -8,7 +8,14 @@
 
 ## Máquinas Virtuais
 
-### Controller Node (8GB RAM, 2 vCPUs, 50GB)
+- [ ] Controller Node (8GB RAM, 2 vCPUs, 50GB)
+- [ ] Network Node    (4GB RAM, 2 vCPUs, 30GB)
+- [ ] Compute Node    (8GB RAM, 4 vCPUs, 100GB)
+- [ ] Storage Node    (4GB RAM, 2 vCPUs, 200GB)
+
+### Detalhamento das Máquinas Virtuais
+
+#### Controller Node
 - [ ] 2 interfaces:
   - vnet0 -> br-prov: 172.16.0.10
   - vnet1 -> br-mgmt: 172.18.0.10
@@ -21,7 +28,7 @@
   - [ ] Neutron Server
   - [ ] Horizon
 
-### Network Node (4GB RAM, 2 vCPUs, 30GB)
+#### Network Node
 - [ ] 3 interfaces:
   - vnet0 -> br-prov: 172.16.0.20
   - vnet1 -> br-data: 172.17.0.20
@@ -30,7 +37,7 @@
   - [ ] Neutron (L3, DHCP, Metadata)
   - [ ] Open vSwitch
 
-### Compute Node (8GB RAM, 4 vCPUs, 100GB)
+#### Compute Node
 - [ ] 2 interfaces:
   - vnet0 -> br-data: 172.17.0.30
   - vnet1 -> br-mgmt: 172.18.0.30
@@ -39,7 +46,7 @@
   - [ ] Neutron OVS Agent
   - [ ] Libvirt/QEMU-KVM
 
-### Storage Node (4GB RAM, 2 vCPUs, 100GB)
+#### Storage Node
 - [ ] 1 interface:
   - vnet0 -> br-mgmt: 172.18.0.40
 - Serviços:
