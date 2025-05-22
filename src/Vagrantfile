@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
     system('ssh-keygen -t ed25519 -f id_ed25519 -N "" >/dev/null 2>&1')
     puts "Nova chave SSH gerada."
   end
-
+  
   # Remove as chaves após destruir todas as VMs
   config.trigger.after :destroy do |trigger|
     trigger.ruby do |env, machine|
@@ -110,7 +110,11 @@ Vagrant.configure("2") do |config|
           nmcli con mod "System eth1" connection.id net_prov
           nmcli con mod "System eth2" connection.id net_mgmt
 
+          nmcli con mod net_vagrant ipv4.ignore-auto-dns yes
+          nmcli con mod net_vagrant ipv4.never-default yes
+
           nmcli con mod net_prov ipv4.never-default no
+          nmcli con mod net_prov ipv4.method manual
           nmcli con mod net_prov ipv4.gateway 172.25.0.1 ipv4.route-metric 50
           nmcli con mod net_prov ipv4.dns "1.1.1.1 8.8.8.8"
 
