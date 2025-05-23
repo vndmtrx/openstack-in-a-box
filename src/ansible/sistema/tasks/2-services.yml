@@ -1,0 +1,86 @@
+# ansible/sistema/tasks/2-services.yml
+---
+- name: Instalar Tailspin para facilitar a leitura de logs
+  ansible.builtin.unarchive:
+    src: https://github.com/bensadeh/tailspin/releases/download/5.4.2/tailspin-x86_64-unknown-linux-musl.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+    mode: '0755'
+    creates: /usr/local/bin/tspin
+
+- name: Instalar cockpit e firewalld
+  ansible.builtin.dnf:
+    name:
+      - cockpit
+      - firewalld
+    state: present
+
+- name: Habilitar e iniciar o firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Habilitar e iniciar o cockpit
+  ansible.builtin.service:
+    name: cockpit
+    state: started
+    enabled: yes
+
+- name: Associar eth0 à zona public
+  ansible.posix.firewalld:
+    interface: eth0
+    zone: public
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Associar eth1 à zona public
+  ansible.posix.firewalld:
+    interface: eth1
+    zone: public
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Associar eth2 à zona trusted
+  ansible.posix.firewalld:
+    interface: eth2
+    zone: trusted
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Garantir que a porta do cockpit esteja aberta na zona public
+  ansible.posix.firewalld:
+    service: cockpit
+    zone: public
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Garantir que a porta do ssh esteja aberta na zona public
+  ansible.posix.firewalld:
+    service: ssh
+    zone: public
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Adicionar IPs de provisionamento no /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].prov_ip }} {{ item }}.osbox.local"
+    state: present
+    create: yes
+  loop: "{{ groups['todos'] }}"
+
+- name: Adicionar IPs de gerenciamento no /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].mgmt_ip }} {{ item }}.mgmt.osbox.local"
+    state: present
+    create: yes
+  loop: "{{ groups['todos'] }}"

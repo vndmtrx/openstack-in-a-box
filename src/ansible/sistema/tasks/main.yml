@@ -4,3 +4,8 @@
   ansible.builtin.import_tasks: '1-base.yml'
   tags:
     - sistema
+
+- name: Instalação de Serviços Comuns
+  ansible.builtin.import_tasks: '2-services.yml'
+  tags:
+    - sistema

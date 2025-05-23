@@ -71,7 +71,7 @@ Vagrant.configure("2") do |config|
   nodes.each do |node_name, specs|
     config.vm.define node_name do |node|
       node.vm.hostname = node_name
-      
+
       # Configurações de rede para o projeto
       node.vm.network "private_network", ip: specs["prov_ip"],
           libvirt__network_name: "#{PROJETO}_prov",
