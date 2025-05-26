@@ -8,45 +8,62 @@
     mode: '0755'
     creates: /usr/local/bin/tspin
 
-- name: Instalar cockpit e firewalld
+- name: Instalar cockpit, firewalld e dependências
   ansible.builtin.dnf:
     name:
       - cockpit
       - firewalld
+      - pcp
+      - python3-pcp
+      - cockpit-session-recording
+      - cockpit-files
+      - cockpit-storaged
     state: present
 
-- name: Habilitar e iniciar o firewalld
+- name: Habilitar e iniciar os serviços instalados
   ansible.builtin.service:
-    name: firewalld
+    name: "{{ item }}"
     state: started
     enabled: yes
+  loop:
+    - cockpit
+    - firewalld
+    - pmlogger
 
-- name: Habilitar e iniciar o cockpit
-  ansible.builtin.service:
-    name: cockpit
-    state: started
-    enabled: yes
+- name: Criar a zona vagrant
+  ansible.posix.firewalld:
+    zone: vagrant
+    state: present
+    permanent: yes
 
-- name: Associar eth0 à zona public
+- name: Associar eth0 à zona dmz
   ansible.posix.firewalld:
     interface: eth0
-    zone: public
+    zone: dmz
     permanent: yes
     state: enabled
     immediate: yes
 
-- name: Associar eth1 à zona public
+- name: Garantir que a porta do ssh esteja aberta na zona dmz
+  ansible.posix.firewalld:
+    service: ssh
+    zone: dmz
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Associar eth1 à zona trusted (tráfego entre VMs)
   ansible.posix.firewalld:
     interface: eth1
-    zone: public
+    zone: trusted
     permanent: yes
     state: enabled
     immediate: yes
 
-- name: Associar eth2 à zona trusted
+- name: Associar eth2 à zona public (acesso ao cluster)
   ansible.posix.firewalld:
     interface: eth2
-    zone: trusted
+    zone: public
     permanent: yes
     state: enabled
     immediate: yes
@@ -59,7 +76,7 @@
     state: enabled
     immediate: yes
 
-- name: Garantir que a porta do ssh esteja aberta na zona public
+- name: Garantir que a porta do ssh esteja aberta também na zona public
   ansible.posix.firewalld:
     service: ssh
     zone: public
@@ -67,20 +84,10 @@
     state: enabled
     immediate: yes
 
-- name: Adicionar IPs de provisionamento no /etc/hosts
-  become: true
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    line: "{{ hostvars[item].prov_ip }} {{ item }}.osbox.local"
-    state: present
-    create: yes
-  loop: "{{ groups['todos'] }}"
-
 - name: Adicionar IPs de gerenciamento no /etc/hosts
-  become: true
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    line: "{{ hostvars[item].mgmt_ip }} {{ item }}.mgmt.osbox.local"
+    line: "{{ hostvars[item].mgmt_ip }} {{ item }} {{ item }}.osbox.local"
     state: present
     create: yes
   loop: "{{ groups['todos'] }}"
