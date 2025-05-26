@@ -11,20 +11,20 @@ PROJETO = "osbox"
 
 # Definição dos nodes com seus IPs e recursos
 nodes = {
-  "controller01" => { "prov_ip" => "172.25.0.11", 
-                      "mgmt_ip" => "172.27.0.11", 
+  "controller01" => { "mgmt_ip" => "172.25.0.11", 
+                      "prov_ip" => "172.27.0.11", 
                       "memory" => 4096, "cpus" => 2 },
-  "compute01"    => { "prov_ip" => "172.25.0.21", 
-                      "mgmt_ip" => "172.27.0.21", 
+  "compute01"    => { "mgmt_ip" => "172.25.0.21", 
+                      "prov_ip" => "172.27.0.21", 
                       "memory" => 4096, "cpus" => 2 },
-  "compute02"    => { "prov_ip" => "172.25.0.22", 
-                      "mgmt_ip" => "172.27.0.21", 
+  "compute02"    => { "mgmt_ip" => "172.25.0.22", 
+                      "prov_ip" => "172.27.0.21", 
                       "memory" => 2048, "cpus" => 1 },
-  "blkstorage01" => { "prov_ip" => "172.25.0.31", 
-                      "mgmt_ip" => "172.27.0.31", 
+  "blkstorage01" => { "mgmt_ip" => "172.25.0.31", 
+                      "prov_ip" => "172.27.0.31", 
                       "memory" => 2048, "cpus" => 1 },
-  "objstorage01" => { "prov_ip" => "172.25.0.32", 
-                      "mgmt_ip" => "172.27.0.12", 
+  "objstorage01" => { "mgmt_ip" => "172.25.0.32", 
+                      "prov_ip" => "172.27.0.12", 
                       "memory" => 2048, "cpus" => 1 }
 }
 
@@ -73,14 +73,14 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = node_name
 
       # Configurações de rede para o projeto
-      node.vm.network "private_network", ip: specs["prov_ip"],
-          libvirt__network_name: "#{PROJETO}_prov",
-          libvirt__dhcp_enabled: false
-
       node.vm.network "private_network", ip: specs["mgmt_ip"],
           libvirt__network_name: "#{PROJETO}_mgmt",
-          libvirt__forward_mode: "veryisolated",
-          libvirt__network_address: "172.27.0.0/24",
+          libvirt__forward_mode: "nat",
+          libvirt__dhcp_enabled: false
+
+      node.vm.network "private_network", ip: specs["prov_ip"],
+          libvirt__network_name: "#{PROJETO}_prov",
+          libvirt__forward_mode: "none",
           libvirt__dhcp_enabled: false
 
       # Sobrescreve as configurações de memória e CPU para cada VM
@@ -106,19 +106,22 @@ Vagrant.configure("2") do |config|
       # Ajuste da rota padrão das máquinas usando os IPs do VagrantFile
       node.vm.provision "shell" do |net|
         net.inline = <<-SHELL
+        (
           nmcli con mod "eth0" connection.id net_vagrant
-          nmcli con mod "System eth1" connection.id net_prov
-          nmcli con mod "System eth2" connection.id net_mgmt
+          nmcli con mod "System eth1" connection.id net_mgmt
+          nmcli con mod "System eth2" connection.id net_prov
 
           nmcli con mod net_vagrant ipv4.ignore-auto-dns yes
           nmcli con mod net_vagrant ipv4.never-default yes
 
-          nmcli con mod net_prov ipv4.never-default no
-          nmcli con mod net_prov ipv4.method manual
-          nmcli con mod net_prov ipv4.gateway 172.25.0.1 ipv4.route-metric 50
-          nmcli con mod net_prov ipv4.dns "1.1.1.1 8.8.8.8"
+          nmcli con mod net_mgmt ipv4.never-default no
+          nmcli con mod net_mgmt ipv4.method manual
+          nmcli con mod net_mgmt ipv4.gateway 172.25.0.1 ipv4.route-metric 50
+          nmcli con mod net_mgmt ipv4.dns "1.1.1.1 8.8.8.8"
 
-          nmcli con down net_prov && nmcli con up net_prov
+          nmcli con down net_mgmt && nmcli con up net_mgmt
+        ) > /dev/null
+        echo "Provisionamento de rede concluído."
         SHELL
       end
     end
