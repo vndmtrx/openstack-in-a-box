@@ -30,13 +30,7 @@
     - firewalld
     - pmlogger
 
-- name: Criar a zona vagrant
-  ansible.posix.firewalld:
-    zone: vagrant
-    state: present
-    permanent: yes
-
-- name: Associar eth0 à zona dmz
+- name: Associar eth0 à zona dmz (rede do vagrant)
   ansible.posix.firewalld:
     interface: eth0
     zone: dmz
@@ -84,10 +78,20 @@
     state: enabled
     immediate: yes
 
-- name: Adicionar IPs de gerenciamento no /etc/hosts
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    line: "{{ hostvars[item].mgmt_ip }} {{ item }} {{ item }}.osbox.local"
-    state: present
-    create: yes
-  loop: "{{ groups['todos'] }}"
+- name: Construir conteúdo do /etc/hosts com todos os nós
+  ansible.builtin.set_fact:
+    osbox_hosts_block: |
+      127.0.0.1 localhost localhost.localdomain
+      ::1       localhost localhost.localdomain
+      {% for item in groups['todos'] %}
+      {{ hostvars[item].mgmt_ip }} {{ item }} {{ item }}.osbox.local
+      {% endfor %}
+
+- name: Substituir todo o /etc/hosts com conteúdo gerenciado
+  ansible.builtin.copy:
+    dest: /etc/hosts
+    content: "{{ osbox_hosts_block | trim }}\n"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
