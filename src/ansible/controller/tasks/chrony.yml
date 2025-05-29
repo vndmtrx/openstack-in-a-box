@@ -1,0 +1,44 @@
+# ansible/controller/tasks/chrony.yml
+---
+
+- name: Instalar dependências iniciais
+  ansible.builtin.dnf:
+    name:
+      - chrony
+    state: present
+
+- name: Comentar a linha de pool padrão no chrony.conf
+  ansible.builtin.replace:
+    path: /etc/chrony.conf
+    regexp: '^(?P<line>\s*pool\s+.*)'
+    replace: '# \g<line>'
+    backup: yes
+
+- name: Configurar chrony com NTS e rede autorizada
+  ansible.builtin.blockinfile:
+    path: /etc/chrony.conf
+    marker: "# {mark} ANSIBLE MANAGED NTP CONFIG"
+    block: |
+      server a.st1.ntp.br iburst nts
+      server b.st1.ntp.br iburst nts
+      server c.st1.ntp.br iburst nts
+
+      allow 172.25.0.0/24
+    insertafter: EOF
+    create: yes
+    backup: yes
+
+- name: Habilitar e iniciar chronyd
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - chronyd
+
+- name: Liberar NTP no firewalld
+  ansible.posix.firewalld:
+    service: ntp
+    permanent: yes
+    state: enabled
+    immediate: yes

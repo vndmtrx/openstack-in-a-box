@@ -1,0 +1,8 @@
+# ansible/controller/tasks/main.yml
+---
+
+- name: Instalação e configuração do Chrony no modo Servidor
+  ansible.builtin.import_tasks: 'chrony.yml'
+  tags:
+    - controller
+    - chrony
