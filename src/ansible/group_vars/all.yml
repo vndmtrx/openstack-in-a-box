@@ -1,0 +1,48 @@
+# ansible/group_vars/all.yml
+---
+# Variável de uso do Ansible para acesso às máquinas.
+ansible_user: vagrant
+
+# ❗ ATENÇÃO: Arquivo para estudo!
+# Estas senhas são placeholders e NÃO devem ser usadas em ambientes de produção.
+# Sugestão de geração: `< /dev/urandom tr -dc 'A-Za-z0-9!@#$%&*()_+=' | head -c20`
+
+# Root do banco
+DATABASE_PASSWORD: "123@mudar!DB"
+
+# Password para o usuário admin
+ADMIN_PASS: "123@mudar!Admin"
+
+# Serviço Cinder
+CINDER_DBPASS: "123@mudar!CinderDB"
+CINDER_PASS: "123@mudar!Cinder"
+
+# Serviço Dashboard
+DASH_DBPASS: "123@mudar!DashDB"
+
+# Usuário Demo
+DEMO_PASS: "123@mudar!Demo"
+
+# Serviço Glance
+GLANCE_DBPASS: "123@mudar!GlanceDB"
+GLANCE_PASS: "123@mudar!Glance"
+
+# Serviço Keystone
+KEYSTONE_DBPASS: "123@mudar!KeystoneDB"
+
+# Proxy Metadata
+METADATA_SECRET: "123@mudar!Metadata"
+
+# Serviço Neutron
+NEUTRON_DBPASS: "123@mudar!NeutronDB"
+NEUTRON_PASS: "123@mudar!Neutron"
+
+# Serviço Nova
+NOVA_DBPASS: "123@mudar!NovaDB"
+NOVA_PASS: "123@mudar!Nova"
+
+# Serviço Placement
+PLACEMENT_PASS: "123@mudar!Placement"
+
+# Serviço RabbitMQ
+RABBIT_PASS: "123@mudar!RabbitMQ"
