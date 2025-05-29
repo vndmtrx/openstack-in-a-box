@@ -113,19 +113,39 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell" do |net|
         net.inline = <<-SHELL
         (
-          nmcli con mod "eth0" connection.id net_vagrant
-          nmcli con mod "System eth1" connection.id net_mgmt
-          nmcli con mod "System eth2" connection.id net_prov
+          # --- Ajustes padrões da conexão do Vagrant ---
+          nmcli con mod eth0 connection.autoconnect yes
+          nmcli con mod eth0 connection.autoconnect-priority -999
+          nmcli con mod eth0 ipv4.route-metric 500
+          nmcli con mod eth0 ipv4.ignore-auto-dns yes
+          nmcli con mod eth0 ipv4.never-default yes
+          nmcli con mod eth0 ipv6.method ignore
+          nmcli con down eth0 && nmcli con up eth0
 
-          nmcli con mod net_vagrant ipv4.ignore-auto-dns yes
-          nmcli con mod net_vagrant ipv4.never-default yes
+          # --- Remove conexões automáticas, se existirem ---
+          nmcli -t -f NAME con show | grep '^System eth1$' && nmcli con delete "System eth1" || true
+          nmcli -t -f NAME con show | grep '^System eth2$' && nmcli con delete "System eth2" || true
 
-          nmcli con mod net_mgmt ipv4.never-default no
-          nmcli con mod net_mgmt ipv4.method manual
-          nmcli con mod net_mgmt ipv4.gateway 172.25.0.1 ipv4.route-metric 50
-          nmcli con mod net_mgmt ipv4.dns "1.1.1.1 8.8.8.8"
+          # --- Remove conexões criadas anteriormente, para idempotência ---
+          nmcli -t -f NAME con show | grep '^net_mgmt$' && nmcli con delete net_mgmt || true
+          nmcli -t -f NAME con show | grep '^net_prov$' && nmcli con delete net_prov || true
 
-          nmcli con down net_mgmt && nmcli con up net_mgmt
+          # --- Cria conexão persistente net_mgmt ---
+          nmcli con add type ethernet con-name net_mgmt ifname eth1 \
+              ipv4.method manual \
+              ipv4.addresses #{specs["mgmt_ip"]}/24 \
+              ipv4.gateway 172.25.0.1 \
+              ipv4.route-metric 50 \
+              ipv4.dns "1.1.1.1,8.8.8.8"
+
+          # --- Cria conexão persistente net_prov ---
+          nmcli con add type ethernet con-name net_prov ifname eth2 \
+              ipv4.method manual \
+              ipv4.addresses #{specs["prov_ip"]}/24
+
+          # --- Ativa as conexões ---
+          nmcli con up net_mgmt
+          nmcli con up net_prov
         ) > /dev/null
         echo "Provisionamento de rede concluído."
         SHELL
